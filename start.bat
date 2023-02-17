@@ -1,3 +1,4 @@
+dotnet tool restore
 :: Copy the libraries 
 dotnet run --project .\tools\cli\package_install\copy --configuration Release -- CryptoTrades\Assets\lib
 :: Run the unity editor
