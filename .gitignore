@@ -29,6 +29,7 @@ Temporary Items
 # .NET
 obj
 bin
+.nuke
 
 # Generated files
 cryptoTrades.sln
