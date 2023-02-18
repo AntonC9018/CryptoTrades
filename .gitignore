@@ -29,3 +29,6 @@ Temporary Items
 # .NET
 obj
 bin
+
+# Generated files
+cryptoTrades.sln

@@ -1,13 +1,21 @@
 using System.Threading;
+using System.Threading.Tasks;
 using Binance.Net.Clients;
 using Binance.Net.Objects;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 public class Test : MonoBehaviour
 {
     private CancellationTokenSource _cts;
+    private UIDocument _uiDocument;
     
-    async void Start()
+    void Start()
+    {
+        _uiDocument = GetComponent<UIDocument>();
+    }
+    
+    async Task Stuff()
     {
         var binanceSocketClient = new BinanceSocketClient(new BinanceSocketClientOptions
         {

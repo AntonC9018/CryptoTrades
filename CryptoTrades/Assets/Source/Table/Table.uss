@@ -1,0 +1,13 @@
+.row > * {
+    flex-grow: 1;
+    justify-content: flex-start;
+    -unity-text-align: upper-center;
+    background-color: rgb(230, 230, 230);
+    margin: 0;
+}
+
+.row {
+    flex-grow: 1;
+    background-color: rgba(0, 0, 0, 0);
+    flex-direction: row;
+}
