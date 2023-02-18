@@ -155,6 +155,9 @@ class Build : NukeBuild
         p.WaitForExit();
         if (GeneratedUnityCsProj.Exists())
             return;
+
+        Serilog.Log.Error("This task can fail if your Unity editor doesn't have the Visual Studio"
+            + " or the Rider editor selected as the default editor. Change it in Project Settings > External Tools");
         throw new ProcessException(p);
     }
 
@@ -179,7 +182,7 @@ class Build : NukeBuild
     IReadOnlyCollection<Output> SlnGenCreateSolution()
     {
         return SlnGen(new Arguments()
-            .Add(RemoveBasePath(GeneratedUnityCsProj,RootDirectory))
+            .Add(RemoveBasePath(GeneratedUnityCsProj, RootDirectory))
             .Add(RemoveBasePath(NukeCsProjFile, RootDirectory))
             .Add("--solutionfile {value}", RootDirectory / GetLastPathSegment(RootDirectory) + ".sln")
             .Add("--launch {value}", "false")

@@ -57,3 +57,4 @@ crashlytics-build.properties
 SwitchIL2CPPCache
 
 *.blend1
+.vsconfig
