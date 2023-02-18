@@ -1,0 +1,42 @@
+V |                      | ArgumentsFromParametersFile.OnBuildCreated (150)
+V |                      | InjectParameterValues.OnBuildCreated (100)
+V |                      | HandleShellCompletion.OnBuildCreated (75)
+V |                      | GenerateBuildServerConfigurations.OnBuildCreated (50)
+V |                      | InvokeBuildServerConfigurationGeneration.OnBuildCreated (45)
+V |                      | UpdateNotification.OnBuildCreated (10)
+V |                      | UnsetVisualStudioEnvironmentVariables.OnBuildCreated (0)
+V |                      | HandleVisualStudioDebugging.OnBuildCreated (0)
+V |                      | HandleSingleFileExecution.OnBuildCreated (-50)
+V |                      | EventInvoker.OnBuildCreated (-3.4028235E+38)
+V |                      | HandleHelpRequests.OnBuildInitialized (5)
+V |                      | Telemetry.OnBuildInitialized (0)
+V |                      | Sending BuildStarted telemetry event ...
+V |                      |   build_components         = 
+V |                      |   build_type               = Project
+V |                      |   compile_time             = 3
+V |                      |   config_generators        = 
+V |                      |   host                     = Terminal
+V |                      |   num_custom_components    = 0
+V |                      |   num_custom_extensions    = 0
+V |                      |   num_partitioned_targets  = 0
+V |                      |   num_secrets              = 0
+V |                      |   num_targets              = 5
+V |                      |   os_architecture          = X64
+V |                      |   os_platform              = Windows
+V |                      |   repo_branch              = main
+V |                      |   repo_commit              = aca3bc
+V |                      |   repo_provider            = GitHub
+V |                      |   repo_url                 = 4a7372
+V |                      |   target_framework         = .NETCoreApp,Version=v7.0
+V |                      |   version_dotnet_sdk       = 7.0.200
+V |                      |   version_nuke_common      = 6.3.0
+V |                      |   version_nuke_global_tool = 6.3.0
+V |                      | InjectNonParameterValues.OnBuildInitialized (-100)
+V |                      | EventInvoker.OnBuildInitialized (-3.4028235E+38)
+V | OpenUnity            | EventInvoker.OnTargetRunning (-3.4028235E+38)
+I | OpenUnity            | > "C:\Program Files\Unity\Hub\Editor\2022.2.7f1\Editor\Unity.exe" -projectPath D:\projects\cryptoTrades\CryptoTrades
+V | OpenUnity            | Telemetry.OnTargetSucceeded (0)
+V | OpenUnity            | EventInvoker.OnTargetSucceeded (-3.4028235E+38)
+V |                      | UpdateNotification.OnBuildFinished (10)
+V |                      | SerializeBuildServerState.OnBuildFinished (0)
+V |                      | EventInvoker.OnBuildFinished (-3.4028235E+38)
