@@ -1,0 +1,3 @@
+[submodule "CryptoTrades/Packages/com.bustedbunny.mvvmtoolkit"]
+	path = CryptoTrades/Packages/com.bustedbunny.mvvmtoolkit
+	url = https://github.com/AntonC9018/com.bustedbunny.mvvmtoolkit
