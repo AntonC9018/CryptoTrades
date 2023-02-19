@@ -2,12 +2,22 @@
     flex-grow: 1;
     justify-content: flex-start;
     -unity-text-align: upper-center;
-    background-color: rgb(230, 230, 230);
     margin: 0;
+}
+
+.row-header > * {
+    background-color: #4d4d4d;
+}
+
+.row-odd > * {
+    background-color: #9b9b9b;
+}
+
+.row-even > * {
+    background-color: #d2d2d2;
 }
 
 .row {
     flex-grow: 1;
-    background-color: rgba(0, 0, 0, 0);
     flex-direction: row;
 }
