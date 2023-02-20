@@ -131,33 +131,15 @@ public sealed class TradesService : IDisposable, IRecipient<ReloadTradesMessage>
             return;
         
         {
-            var initTasks = symbols.Select(
-                    s => _binanceClient.SpotApi.ExchangeData.GetRecentTradesAsync(s, _config.TradesCountLimit,
-                        token))
-                .ToArray();
-            await Task.WhenAll(initTasks);
-            
-            if (token.IsCancellationRequested)
-                return;
-
-            var trades = new List<Trade>();
-            {
-                void AddResults(int index, bool isBuy)
-                {
-                    var r = initTasks[index].Result;
-                    if (!r.Success)
-                        throw new Exception(r.Error?.Message);
-                    trades.AddRange(r.Data.Select(x => x.ToTrade(isBuy)));
-                }
-
-                AddResults(0, true);
-                AddResults(1, false);
-            }
-            trades.Sort((x, y) => x.DateTime.CompareTo(y.DateTime));
+            var initTask = _binanceClient.SpotApi.ExchangeData.GetRecentTradesAsync(
+                symbols[0], _config.TradesCountLimit, token);
+            var result = await initTask;
+            if (!result.Success)
+                throw new Exception(result.Error?.Message);
 
             _model.Trades.Clear();
-            foreach (var trade in trades)
-                _model.Trades.Add(trade);
+            foreach (var trade in result.Data)
+                _model.Trades.Add(trade.ToTrade());
         }
         
         if (token.IsCancellationRequested)
@@ -178,15 +160,7 @@ public sealed class TradesService : IDisposable, IRecipient<ReloadTradesMessage>
         if (_model.TradesAreLoading)
             return;
         
-        var symbol = trade.Symbol;
-        bool isBuy;
-        {
-            var (a, b) = _model.CurrencyNames;
-            isBuy = symbol.StartsWith(a)
-                && symbol.AsSpan()[a.Length ..].EndsWith(b);
-        }
-
-        var tradeModel = trade.ToTrade(isBuy);
+        var tradeModel = trade.ToTrade();
         var trades = _model.Trades;
         
         while (trades.Count >= _config.TradesCountLimit)
