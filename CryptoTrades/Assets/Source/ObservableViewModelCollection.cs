@@ -15,7 +15,7 @@ namespace Utils
         // The interface of NotifyCollectionChangedEventArgs isn't obvious at all,
         // this implementation is one that made sense.
         public static void ReflectCollectionChangedEvent<TModel, TViewModel>(
-            this ObservableCollection<TViewModel> target,
+            this ObservableCollection<TViewModel> observer,
             Func<TModel?, TViewModel> viewModelFactory,
             NotifyCollectionChangedEventArgs e)
         {
@@ -24,7 +24,7 @@ namespace Utils
                 case NotifyCollectionChangedAction.Add:
                 {
                     for (int i = 0; i < e.NewItems!.Count; i++)
-                        target.Insert(e.NewStartingIndex + i, viewModelFactory((TModel?) e.NewItems[i]));
+                        observer.Insert(e.NewStartingIndex + i, viewModelFactory((TModel?) e.NewItems[i]));
                     break;
                 }
     
@@ -32,18 +32,18 @@ namespace Utils
                 {
                     if (e.OldItems!.Count == 1)
                     {
-                        target.Move(e.OldStartingIndex, e.NewStartingIndex);
+                        observer.Move(e.OldStartingIndex, e.NewStartingIndex);
                     }
                     else
                     {
                         // This part is kinda terribly implemented though.
                         // I might reimplement this part.
-                        List<TViewModel> items = target.Skip(e.OldStartingIndex).Take(e.OldItems.Count).ToList();
+                        List<TViewModel> items = observer.Skip(e.OldStartingIndex).Take(e.OldItems.Count).ToList();
                         for (int i = 0; i < e.OldItems.Count; i++)
-                            target.RemoveAt(e.OldStartingIndex);
+                            observer.RemoveAt(e.OldStartingIndex);
     
                         for (int i = 0; i < items.Count; i++)
-                            target.Insert(e.NewStartingIndex + i, items[i]);
+                            observer.Insert(e.NewStartingIndex + i, items[i]);
                     }
                     break;
                 }
@@ -51,7 +51,7 @@ namespace Utils
                 case NotifyCollectionChangedAction.Remove:
                 {
                     for (int i = 0; i < e.OldItems!.Count; i++)
-                        target.RemoveAt(e.OldStartingIndex);
+                        observer.RemoveAt(e.OldStartingIndex);
                     break;
                 }
     
@@ -61,7 +61,7 @@ namespace Utils
                     
                     // remove
                     for (int i = 0; i < e.OldItems!.Count; i++)
-                        target.RemoveAt(e.OldStartingIndex);
+                        observer.RemoveAt(e.OldStartingIndex);
     
                     // add
                     goto case NotifyCollectionChangedAction.Add;
@@ -69,11 +69,11 @@ namespace Utils
     
                 case NotifyCollectionChangedAction.Reset:
                 {
-                    target.Clear();
+                    observer.Clear();
                     if (e.NewItems is not null)
                     {
                         for (int i = 0; i < e.NewItems.Count; i++)
-                            target.Add(viewModelFactory((TModel?) e.NewItems[i]));
+                            observer.Add(viewModelFactory((TModel?) e.NewItems[i]));
                     }
                     break;
                 }
@@ -84,18 +84,18 @@ namespace Utils
         }
     
         public static NotifyCollectionChangedEventHandler WrapCollectionChanged<TModel, TViewModel>(
-            this ObservableCollection<TViewModel> target,
+            this ObservableCollection<TViewModel> observer,
             Func<TModel?, TViewModel> viewModelFactory)
         {
-            return (_, e) => ReflectCollectionChangedEvent(target, viewModelFactory, e);
+            return (_, e) => ReflectCollectionChangedEvent(observer, viewModelFactory, e);
         }
         
         public static void SubscribeReflectingCollectionChanged<TModel, TViewModel>(
-            this ObservableCollection<TViewModel> target,
-            ObservableCollection<TModel?> source,
+            this ObservableCollection<TViewModel> observer,
+            ObservableCollection<TModel?> observable,
             Func<TModel?, TViewModel> viewModelFactory)
         {
-            source.CollectionChanged += target.WrapCollectionChanged(viewModelFactory);
+            observable.CollectionChanged += observer.WrapCollectionChanged(viewModelFactory);
         }
     }
     
@@ -116,13 +116,10 @@ namespace Utils
     */
     public class ObservableViewModelCollection<TViewModel, TModel> : ObservableCollection<TViewModel>
     {
-        private readonly Func<TModel?, TViewModel> _viewModelFactory;
-    
-        public ObservableViewModelCollection(ObservableCollection<TModel?> source, Func<TModel?, TViewModel> viewModelFactory)
-            : base(source.Select(viewModelFactory))
+        public ObservableViewModelCollection(ObservableCollection<TModel?> observable, Func<TModel?, TViewModel> viewModelFactory)
+            : base(observable.Select(viewModelFactory))
         {
-            _viewModelFactory = viewModelFactory;
-            source.CollectionChanged += this.WrapCollectionChanged(_viewModelFactory);
+            observable.CollectionChanged += this.WrapCollectionChanged(viewModelFactory);
         }
     }
 }
