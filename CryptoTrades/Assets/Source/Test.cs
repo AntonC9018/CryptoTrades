@@ -5,8 +5,7 @@ using Binance.Net.Objects;
 using UnityEngine;
 using UnityEngine.UIElements;
 
-
-public class Test : MonoBehaviour
+public sealed class Test : MonoBehaviour
 {
     private CancellationTokenSource _cts;
     private UIDocument _uiDocument;

@@ -7,76 +7,21 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Binance.Net.Clients;
 using Binance.Net.Interfaces;
-using Binance.Net.Objects.Models.Spot.Socket;
-using CommunityToolkit.Mvvm.ComponentModel;
-using CryptoExchange.Net.Sockets;
 using Cysharp.Threading.Tasks;
 using JetBrains.Annotations;
-using MVVMToolkit;
-using UnityEngine;
-using System.Linq;
 
-public partial class RowViewModel : ViewModel
-{
-    public string TradePrice { get; set; }
-    public string TradeAmount { get; set; }
-    public bool IsBuy { get; set; }
-    public string DateTime { get; set; }
-}
 
-public class Trade : ITrade
-{
-    public bool IsBuy { get; set; }
-    public decimal Price { get; set; }
-    public decimal Amount { get; set; }
-    public DateTime DateTime { get; set; }
-}
-
-public static class TradeExtensions
-{
-    public static Trade ToTrade(this IBinanceTrade data, bool isBuy)
-    {
-        return new Trade
-        {
-            IsBuy = isBuy,
-            Price = data.Price,
-            Amount = data.Quantity,
-            DateTime = data.TradeTime,
-        };
-    }
-
-    public static Trade ToTrade(this IBinanceRecentTrade data, bool isBuy)
-    {
-        return new Trade
-        {
-            IsBuy = isBuy,
-            Price = data.Price,
-            Amount = data.BaseQuantity,
-            DateTime = data.TradeTime,
-        };
-    }
-}
-
-public interface ITrade
-{
-    decimal Price { get; }
-    decimal Amount { get; }
-    bool IsBuy { get; }
-    DateTime DateTime { get; }
-}
-
-public class TradesConfiguration
+public sealed class TradesConfiguration
 {
     public int TradesCountLimit { get; set; } = 1000;
 }
 
-public class TradesService
+public sealed class TradesService
 {
     private readonly TradesConfiguration _config;
     private readonly BinanceClient _binanceClient;
@@ -237,33 +182,4 @@ public class TradesService
         var tradeModel = trade.ToTrade(isBuy);
         _model.Trades.Add(tradeModel);
     }
-}
-
-public partial class TradesModel : ObservableObject
-{
-    [ObservableProperty] private bool _tradesAreLoading;
-    [ObservableProperty] private string _currencyName1;
-    [ObservableProperty] private string _currencyName2;
-    public ObservableCollection<Trade> Trades { get; }
-}
-
-public partial class TestViewModel : ViewModel
-{
-    private 
-    [ObservableProperty] private string _currencyName1;
-    [ObservableProperty] private string _currencyName2;
-
-    private partial void OnCurrencyName1Changed() => OnCurrencyNameChanged();
-    private partial void OnCurrencyName2Changed() => OnCurrencyNameChanged();
-
-    private void OnCurrencyNameChanged()
-    {
-        
-    }
-
-    // For now do this, later either change this to a circular buffer or idk.
-    // I'm not sure how INotifyCollectionChanged is supposed to handle inserts at indices.
-    // Does is support them only in the form of a Move and then a Set at an index?
-    // If so, then it would add no value.
-    public ObservableCollection<RowViewModel> Rows { get; } = new();
 }
