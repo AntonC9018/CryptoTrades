@@ -15,7 +15,7 @@ public class Test : MonoBehaviour
     {
         _uiDocument = GetComponent<UIDocument>();
     }
-    
+        
     async Task Stuff()
     {
         var binanceSocketClient = new BinanceSocketClient(new BinanceSocketClientOptions
