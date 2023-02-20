@@ -70,11 +70,24 @@ public partial class TradesTableViewModel : ViewModel
     
     public bool SomeCurrencyNameChanged => (CurrencyName1, CurrencyName2) != Model.CurrencyNames;
     
-    public bool CanUpdateTrades => !Model.TradesAreLoading
-        && CurrencyName1 != ""
-        && CurrencyName2 != ""
-        && CurrencyName1 != CurrencyName2
-        && SomeCurrencyNameChanged;
+    public bool CanUpdateTrades
+    {
+        get
+        {
+            if (Model.TradesAreLoading
+                || CurrencyName1 == ""
+                || CurrencyName2 == ""
+                || CurrencyName1 == CurrencyName2)
+            {
+                return false;
+            }
+
+            if (Model.Trades.Count == 0 || SomeCurrencyNameChanged)
+                return true;
+
+            return false;
+        }
+    }
     
     [RelayCommand(CanExecute = nameof(CanUpdateTrades))]
     public void UpdateTrades()
