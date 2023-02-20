@@ -7,6 +7,7 @@
             <ui:TextField text="CurrencyName1" view-data-key="{%CurrencyName1}" />
             <ui:Label text="To" />
             <ui:TextField text="CurrencyName2" view-data-key="{%CurrencyName2}" />
+            <ui:Button text="Update" view-data-key="{@UpdateTradesCommand}" />
         </ui:VisualElement>
         
         <ui:VisualElement class="row row-header">

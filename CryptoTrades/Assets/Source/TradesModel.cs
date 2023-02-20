@@ -5,7 +5,6 @@ using UnityEngine;
 public sealed partial class TradesModel : ObservableObject
 {
     [ObservableProperty] private bool _tradesAreLoading;
-    [ObservableProperty] private string _currencyName1;
-    [ObservableProperty] private string _currencyName2;
+    [ObservableProperty] private (string, string) _currencyNames = ("", "");
     public ObservableCollection<Trade> Trades { get; } = new();
 }

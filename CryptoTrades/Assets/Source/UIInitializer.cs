@@ -17,25 +17,26 @@ public class UIInitializer : MonoBehaviour
 
     private async UniTask InitializeAsync()
     {
+        // TBD: add normal DI
+        var tradesModel = new TradesModel();
+        var tradesConfig = new TradesConfiguration();
+        var binanceClients = (
+            new BinanceSocketClient(BinanceSocketClientOptions.Default),
+            new BinanceClient(BinanceClientOptions.Default));
+
+        var tradesService = new TradesService(
+            tradesConfig,
+            binanceClients.Item1,
+            binanceClients.Item2,
+            tradesModel,
+            default);
+        
         var root = GetComponent<UIRoot>();
         var serviceProvider = new ServiceProvider();
-        
-        // TODO: add normal DI
-        serviceProvider.RegisterService(new TradesModel
-        {
-            CurrencyName1 = "BTC",
-            CurrencyName2 = "TBC",
-        });
-        serviceProvider.RegisterService(new TradesConfiguration());
-        serviceProvider.RegisterService(new TradesService(
-            serviceProvider.GetRequiredService<TradesConfiguration>(),
-            new BinanceSocketClient(new BinanceSocketClientOptions()),
-            new BinanceClient(new BinanceClientOptions()),
-            serviceProvider.GetRequiredService<TradesModel>(),
-            default));
+        serviceProvider.RegisterService(tradesModel);
 
         var messenger = new StrongReferenceMessenger();
-        messenger.RegisterAll(serviceProvider.GetRequiredService<TradesService>());
+        messenger.RegisterAll(tradesService);
 
         await root.Initialize(messenger, serviceProvider);
         messenger.Send<OpenTradesTableMessage>();

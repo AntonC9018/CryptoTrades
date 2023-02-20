@@ -9,25 +9,25 @@ public sealed class Trade : ITrade
     public DateTime DateTime { get; set; }
 }
 
-
 public static class TradeExtensions
 {
-    public static Trade ToTrade(this IBinanceTrade data, bool isBuy)
+    // https://money.stackexchange.com/q/90686
+    public static Trade ToTrade(this IBinanceTrade data)
     {
         return new Trade
         {
-            IsBuy = isBuy,
+            IsBuy = data.BuyerIsMaker == false,
             Price = data.Price,
             Amount = data.Quantity,
             DateTime = data.TradeTime,
         };
     }
 
-    public static Trade ToTrade(this IBinanceRecentTrade data, bool isBuy)
+    public static Trade ToTrade(this IBinanceRecentTrade data)
     {
         return new Trade
         {
-            IsBuy = isBuy,
+            IsBuy = data.BuyerIsMaker == false,
             Price = data.Price,
             Amount = data.BaseQuantity,
             DateTime = data.TradeTime,

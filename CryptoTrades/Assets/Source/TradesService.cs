@@ -15,8 +15,6 @@ using Binance.Net.Interfaces;
 using CommunityToolkit.Mvvm.Messaging;
 using Cysharp.Threading.Tasks;
 using JetBrains.Annotations;
-using UnityEngine.PlayerLoop;
-
 
 public sealed class TradesConfiguration
 {
@@ -25,9 +23,10 @@ public sealed class TradesConfiguration
 
 public sealed class ReloadTradesMessage
 {
+    
 }
 
-public sealed class TradesService : IRecipient<ReloadTradesMessage>
+public sealed class TradesService : IDisposable, IRecipient<ReloadTradesMessage>
 {
     private readonly TradesConfiguration _config;
     private readonly BinanceClient _binanceClient;
@@ -124,8 +123,8 @@ public sealed class TradesService : IRecipient<ReloadTradesMessage>
     {
         string[] symbols =
         {
-            $"{_model.CurrencyName2}{_model.CurrencyName1}",
-            $"{_model.CurrencyName1}{_model.CurrencyName2}"
+            $"{_model.CurrencyNames.Item1}{_model.CurrencyNames.Item2}",
+            $"{_model.CurrencyNames.Item2}{_model.CurrencyNames.Item1}",
         };
 
         if (token.IsCancellationRequested)
@@ -174,14 +173,29 @@ public sealed class TradesService : IRecipient<ReloadTradesMessage>
         }
     }
     
-    public void OnNextTrade(IBinanceTrade trade)
+    private void OnNextTrade(IBinanceTrade trade)
     {
         if (_model.TradesAreLoading)
             return;
         
         var symbol = trade.Symbol;
-        bool isBuy = symbol.StartsWith(_model.CurrencyName1) && symbol.EndsWith(_model.CurrencyName2);
+        bool isBuy;
+        {
+            var (a, b) = _model.CurrencyNames;
+            isBuy = symbol.StartsWith(a)
+                && symbol.AsSpan()[a.Length ..].EndsWith(b);
+        }
+
         var tradeModel = trade.ToTrade(isBuy);
-        _model.Trades.Add(tradeModel);
+        var trades = _model.Trades;
+        
+        while (trades.Count >= _config.TradesCountLimit)
+            trades.RemoveAt(0);
+        trades.Add(tradeModel);
+    }
+
+    public void Dispose()
+    {
+        _cts?.Dispose();
     }
 }
