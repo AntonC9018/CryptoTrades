@@ -12,8 +12,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using Binance.Net.Clients;
 using Binance.Net.Interfaces;
+using CommunityToolkit.Mvvm.Messaging;
 using Cysharp.Threading.Tasks;
 using JetBrains.Annotations;
+using UnityEngine.PlayerLoop;
 
 
 public sealed class TradesConfiguration
@@ -21,7 +23,11 @@ public sealed class TradesConfiguration
     public int TradesCountLimit { get; set; } = 1000;
 }
 
-public sealed class TradesService
+public sealed class ReloadTradesMessage
+{
+}
+
+public sealed class TradesService : IRecipient<ReloadTradesMessage>
 {
     private readonly TradesConfiguration _config;
     private readonly BinanceClient _binanceClient;
@@ -50,13 +56,9 @@ public sealed class TradesService
         _model = model;
     }
     
-    public TradesService(TradesModel model)
+    public void Receive(ReloadTradesMessage message)
     {
-        model.PropertyChanged += (sender, args) =>
-        {
-            if (args.PropertyName is not nameof(model.CurrencyName1) or nameof(model.CurrencyName2))
-                return;
-        };
+        UpdateTrades().Forget();
     }
     
     public async UniTask UpdateTrades()

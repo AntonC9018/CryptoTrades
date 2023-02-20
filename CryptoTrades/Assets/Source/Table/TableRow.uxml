@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<engine:UXML
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:ui="UnityEngine.UIElements"
+    xmlns:engine="UnityEngine.UIElements"
+    xsi:noNamespaceSchemaLocation="../../../UIElementsSchema/UIElements.xsd"
+>
+    <ui:VisualElement class="row">
+        <ui:Label name="TradePrice" />
+        <ui:Label name="TradeAmount" />
+        <ui:Label name="DateTime" />
+    </ui:VisualElement>
+</engine:UXML>

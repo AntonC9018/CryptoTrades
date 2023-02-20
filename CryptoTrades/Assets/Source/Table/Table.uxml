@@ -1,11 +1,23 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="False">
     <Style src="project://database/Assets/Source/Table/Table.uss?fileID=7433441132597879392&amp;guid=a7860e272ab37a648a64b10faad5da4d&amp;type=3#Table" />
-    <ui:ScrollView>
-        <ui:VisualElement class="row row-header" style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); flex-direction: row; align-self: center; justify-content: center;">
-            <ui:Label text="Label" display-tooltip-when-elided="true" />
-            <ui:Label text="Label" display-tooltip-when-elided="true" />
-            <ui:Label text="Label" display-tooltip-when-elided="true" />
-            <ui:Label text="Label" display-tooltip-when-elided="true" />
+    <ui:ScrollView name="Table">
+        
+        <ui:VisualElement class="menu">
+            <ui:Label text="From" />
+            <ui:TextField text="CurrencyName1" view-data-key="{%CurrencyName1}" />
+            <ui:Label text="To" />
+            <ui:TextField text="CurrencyName2" view-data-key="{%CurrencyName2}" />
         </ui:VisualElement>
+        
+        <ui:VisualElement class="row row-header">
+            <ui:Label text="Price" />
+            <ui:Label text="Quantity" />
+            <ui:Label text="DateTime" />
+        </ui:VisualElement>
+        
+        <ui:ListView name="RowsListView" fixed-item-height="22">
+            <!-- The items are initialized manually-->
+        </ui:ListView>
+        
     </ui:ScrollView>
 </ui:UXML>
