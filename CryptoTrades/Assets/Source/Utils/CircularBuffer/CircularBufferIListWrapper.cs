@@ -5,12 +5,12 @@ namespace Utils
 {
     public class CircularBufferIListWrapper<T> : IList
     {
+        public ObservableCircularBuffer<T> Buffer { get; }
+
         public CircularBufferIListWrapper(ObservableCircularBuffer<T> buffer)
         {
             Buffer = buffer;
         }
-
-        public ObservableCircularBuffer<T> Buffer { get; }
 
         public object this[int index]
         {

@@ -198,11 +198,11 @@ namespace Utils
             if (PushBack_Internal(item, out var popped))
             {
                 CircularBufferChanged?.Invoke(this, CircularBufferChangedEventArgs<T>.PushedBack_PopFront(
-                    new[]{item}, new[]{popped}));
+                    item, popped));
             }
             else
             {
-                CircularBufferChanged?.Invoke(this, CircularBufferChangedEventArgs<T>.PushedBack(new[]{item}));
+                CircularBufferChanged?.Invoke(this, CircularBufferChangedEventArgs<T>.PushedBack(item));
             }
         }
 
@@ -233,7 +233,9 @@ namespace Utils
             foreach (var item in items)
             {
                 if (PushBack_Internal(item, out var popped))
+                {
                     removed.Add(popped);
+                }
             }
             
             CircularBufferChanged?.Invoke(this, CircularBufferChangedEventArgs<T>.PushedBack_PopFront(items, removed));
@@ -252,11 +254,11 @@ namespace Utils
             if (PushFront_Internal(item, out var popped))
             {
                 CircularBufferChanged?.Invoke(this, CircularBufferChangedEventArgs<T>.PushedFront_PopBack(
-                    new[]{item}, new[]{popped}));
+                    item, popped));
             }
             else
             {
-                CircularBufferChanged?.Invoke(this, CircularBufferChangedEventArgs<T>.PushedFront(new[]{item}));
+                CircularBufferChanged?.Invoke(this, CircularBufferChangedEventArgs<T>.PushedFront(item));
             }
         }
         
@@ -287,7 +289,9 @@ namespace Utils
             foreach (var item in items)
             {
                 if (PushFront_Internal(item, out var popped))
+                {
                     removed.Add(popped);
+                }
             }
             
             CircularBufferChanged?.Invoke(this, CircularBufferChangedEventArgs<T>.PushedFront_PopBack(items, removed));
@@ -316,7 +320,9 @@ namespace Utils
         public void PopBackN(int count)
         {
             if (_size < count)
+            {
                 throw new ArgumentOutOfRangeException(nameof(count), "Cannot pop more elements than the buffer contains.");
+            }
             
             T[] removed = new T[count];
             
@@ -355,7 +361,9 @@ namespace Utils
         public void PopFrontN(int count)
         {
             if (_size < count)
+            {
                 throw new ArgumentOutOfRangeException(nameof(count), "Cannot pop more elements than the buffer contains.");
+            }
             
             T[] removed = new T[count];
             

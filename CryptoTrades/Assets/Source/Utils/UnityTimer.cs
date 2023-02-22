@@ -11,7 +11,9 @@ public class UnityTimer : MonoBehaviour
     void Update()
     {
         if (_stopped)
+        {
             return;
+        }
         if (_timePassed >= Interval)
         {
             _timePassed = 0;

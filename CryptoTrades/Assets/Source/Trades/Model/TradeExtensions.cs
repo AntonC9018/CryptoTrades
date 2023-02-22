@@ -1,17 +1,8 @@
-﻿using System;
-using Binance.Net.Interfaces;
-
-public sealed class Trade : ITrade
-{
-    public bool IsBuy { get; set; }
-    public decimal Price { get; set; }
-    public decimal Amount { get; set; }
-    public DateTime DateTime { get; set; }
-}
+﻿using Binance.Net.Interfaces;
 
 public static class TradeExtensions
 {
-    // https://money.stackexchange.com/q/90686
+    // Meaning of BuyerIsMarker: https://money.stackexchange.com/q/90686
     public static Trade ToTrade(this IBinanceTrade data)
     {
         return new Trade
@@ -33,12 +24,4 @@ public static class TradeExtensions
             DateTime = data.TradeTime,
         };
     }
-}
-
-public interface ITrade
-{
-    decimal Price { get; }
-    decimal Amount { get; }
-    bool IsBuy { get; }
-    DateTime DateTime { get; }
 }

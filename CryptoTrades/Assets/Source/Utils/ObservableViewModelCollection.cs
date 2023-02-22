@@ -98,30 +98,6 @@ namespace Utils
             observable.CollectionChanged += observer.WrapCollectionChanged(viewModelFactory);
         }
     }
-    
-    // https://stackoverflow.com/a/2177659/9731532
-    /* 
-        Click button to create
-        -> add a new model to models
-        -> trigger add event on the model observable
-        -> add a new view model to view models
-        -> trigger add view model event
-        -> update UI
-    
-        UI value changed
-        -> set property on view model via binding
-        -> set field on model
-        -> trigger update event
-        -> update UI (validation for example)
-    */
-    public class ObservableViewModelCollection<TViewModel, TModel> : ObservableCollection<TViewModel>
-    {
-        public ObservableViewModelCollection(ObservableCollection<TModel?> observable, Func<TModel?, TViewModel> viewModelFactory)
-            : base(observable.Select(viewModelFactory))
-        {
-            observable.CollectionChanged += this.WrapCollectionChanged(viewModelFactory);
-        }
-    }
 }
 
 

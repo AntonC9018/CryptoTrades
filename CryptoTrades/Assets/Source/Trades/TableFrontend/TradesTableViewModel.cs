@@ -40,7 +40,9 @@ public partial class TradesTableViewModel : ViewModel
         if (Model is not null)
         {
             if (Model != model)
+            {
                 throw new Exception("Initialization with different models is not allowed.");
+            }
             return;
         }
         
@@ -71,11 +73,15 @@ public partial class TradesTableViewModel : ViewModel
             switch (e.PropertyName)
             {
                 case nameof(Model.TradesAreLoading):
+                {
                     UpdateTradesCommand.NotifyCanExecuteChanged();
                     break;
+                }
                 case nameof(Model.CurrencyNames):
+                {
                     (CurrencyName1, CurrencyName2) = Model.CurrencyNames;
                     break;
+                }
             }
         };
     }
@@ -95,7 +101,9 @@ public partial class TradesTableViewModel : ViewModel
             }
 
             if (Model.Trades.Size == 0 || SomeCurrencyNameChanged)
+            {
                 return true;
+            }
 
             return false;
         }

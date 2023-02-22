@@ -12,7 +12,9 @@ namespace Utils
             Func<TObserved, TOwn> factory)
         {
             if (observable.Capacity != observer.Capacity)
+            {
                 throw new Exception("Capacities should match");
+            }
             
             observable.CircularBufferChanged += (_, e) =>
             {
