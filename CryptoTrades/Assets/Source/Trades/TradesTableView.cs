@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Linq;
 using CommunityToolkit.Mvvm.Messaging;
+using Cysharp.Threading.Tasks;
 using MVVMToolkit;
 using UnityEditor;
 using UnityEngine;
@@ -49,8 +50,12 @@ public sealed class TradesTableView : BaseView, IRecipient<OpenTradesTableMessag
             rowsListView.selectionType = SelectionType.None;
             rowsListView.itemsSource = new CircularBufferIListWrapper<TradesTableRowViewModel>(ViewModel.Rows);
 
-            ViewModel.Rows.CircularBufferChanged += (_, e) =>
+            ViewModel.Rows.CircularBufferChanged += async (_, e) =>
             {
+                // Refreshing the list view while not on the main thread makes it glitch out.
+                // In general, I think calling unity functions from a non-main thread is considered UB.
+                await UniTask.SwitchToMainThread();
+
                 switch (e.Action)
                 {
                     case CircularBufferAction.SetAtIndex:
@@ -62,6 +67,12 @@ public sealed class TradesTableView : BaseView, IRecipient<OpenTradesTableMessag
                         break;
                 }
             };
+            
+            // The table header has to account for the scrollbar width
+            // in order to align the header columns properly.
+            var scrollBarWidth = rowsListView.style.width;
+            var offset = RootVisualElement.Q<VisualElement>("ScrollbarOffset");
+            offset.style.width = scrollBarWidth;
         }
 
         enabled = true;

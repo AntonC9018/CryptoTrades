@@ -20,7 +20,7 @@ public class FakeTradesService : IDisposable, IRecipient<ReloadTradesMessage>
         _timer = unityTimer;
         _model = model;
         
-        _timer.Stop();
+        _timer.StopTimer();
         _timer.Elapsed += () =>
         {
             _model.Trades.PushFront(GetTrade());
@@ -40,12 +40,12 @@ public class FakeTradesService : IDisposable, IRecipient<ReloadTradesMessage>
     
     public void Receive(ReloadTradesMessage message)
     {
-        _timer.Stop();
+        _timer.StopTimer();
         
         _model.Trades.Clear();
         _model.Trades.PushFrontN(Enumerable.Range(0, _config.TradesCountLimit).Select(i => GetTrade()).ToArray());
 
-        _timer.Start();
+        _timer.StartTimer();
     }
 
     public void Dispose()

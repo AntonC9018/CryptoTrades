@@ -19,11 +19,6 @@ using CryptoExchange.Net.Objects;
 using Cysharp.Threading.Tasks;
 using JetBrains.Annotations;
 
-public sealed class TradesConfiguration
-{
-    public int TradesCountLimit { get; set; } = 1000;
-}
-
 public sealed class ReloadTradesMessage
 {
     
@@ -196,7 +191,7 @@ public sealed class TradesService : IDisposable, IRecipient<ReloadTradesMessage>
 
         {
             var subscriptionTask = _binanceSocketClient.SpotStreams.SubscribeToTradeUpdatesAsync(
-                symbol, e => OnNextTrade(e.Data).Forget(), token);
+                symbol, e => OnNextTrade(e.Data), token);
             var subscriptionResult = await subscriptionTask;
 
             if (!subscriptionResult.Success)
@@ -204,10 +199,8 @@ public sealed class TradesService : IDisposable, IRecipient<ReloadTradesMessage>
         }
     }
     
-    private async UniTask OnNextTrade(IBinanceTrade trade)
+    private void OnNextTrade(IBinanceTrade trade)
     {
-        await UniTask.SwitchToMainThread();
-        
         if (_model.TradesAreLoading)
             return;
         
@@ -216,7 +209,6 @@ public sealed class TradesService : IDisposable, IRecipient<ReloadTradesMessage>
         
         // We're pushing from only one thread so it's fine not to lock.
         trades.PushFront(tradeModel);
-        
     }
 
     public void Dispose()

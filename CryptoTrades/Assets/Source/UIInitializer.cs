@@ -16,13 +16,14 @@ public class UIInitializer : MonoBehaviour
 {
     [SerializeField] private UnityTimer _timer;
     [SerializeField] private bool _isTesting;
+    [SerializeField] private TradesConfiguration _tradesConfiguration;
         
     void Start() => InitializeAsync().Forget();
 
     private async UniTask InitializeAsync()
     {
         // TBD: add normal DI
-        var tradesConfig = new TradesConfiguration();
+        var tradesConfig = _tradesConfiguration;
         var tradesModel = new TradesModel(new ObservableCircularBuffer<Trade>(tradesConfig.TradesCountLimit));
 
         object tradesService;

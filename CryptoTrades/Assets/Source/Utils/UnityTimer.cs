@@ -23,6 +23,6 @@ public class UnityTimer : MonoBehaviour
         }
     }
 
-    public void Stop() => _stopped = true;
-    public void Start() => _stopped = false;
+    public void StopTimer() => _stopped = true;
+    public void StartTimer() => _stopped = false;
 }

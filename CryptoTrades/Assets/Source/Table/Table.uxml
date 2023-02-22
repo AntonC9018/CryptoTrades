@@ -13,6 +13,7 @@
             <ui:Label text="Price" />
             <ui:Label text="Quantity" />
             <ui:Label text="DateTime" />
+            <ui:VisualElement name="ScrollbarOffset" />
         </ui:VisualElement>
         <ui:ListView name="RowsListView" fixed-item-height="36" style="flex-shrink: 1; align-items: stretch;" />
     </ui:VisualElement>

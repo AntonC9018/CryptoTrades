@@ -482,6 +482,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _timer: {fileID: 1357242245}
   _isTesting: 1
+  _tradesConfiguration:
+    <TradesCountLimit>k__BackingField: 1000
 --- !u!114 &1357242245
 MonoBehaviour:
   m_ObjectHideFlags: 0

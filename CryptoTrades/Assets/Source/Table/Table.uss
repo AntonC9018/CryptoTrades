@@ -1,11 +1,10 @@
-.row > * {
-    flex-grow: 1;
-    justify-content: flex-start;
-    -unity-text-align: upper-center;
+.row > Label {
+    flex: 1;
     margin: 0;
+    -unity-text-align: middle-center;
 }
 
-.row-header > * {
+.row-header > Label {
     background-color: rgb(164, 109, 109);
     color: rgb(29, 29, 29);
 }
