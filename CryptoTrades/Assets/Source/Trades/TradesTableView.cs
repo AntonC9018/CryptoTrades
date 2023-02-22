@@ -41,11 +41,7 @@ public sealed class TradesTableView : BaseView, IRecipient<OpenTradesTableMessag
         {
             // The MVVM library doesn't support data binding well for this use case.
             // We only need data binding on initialization for these.
-            rowsListView.makeItem = () =>
-            {
-                 Debug.Log("Making item " + DateTime.Now.Second);
-                 return _tableRowAsset.Instantiate();
-            };
+            rowsListView.makeItem = () => _tableRowAsset.Instantiate();
             rowsListView.bindItem = (e, i) => ViewModel.Rows[i].BindView(e);
             rowsListView.selectionType = SelectionType.None;
             rowsListView.itemsSource = new CircularBufferIListWrapper<TradesTableRowViewModel>(ViewModel.Rows);
