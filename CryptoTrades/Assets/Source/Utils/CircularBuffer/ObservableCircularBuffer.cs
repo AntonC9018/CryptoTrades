@@ -198,11 +198,11 @@ namespace Utils
             if (PushBack_Internal(item, out var popped))
             {
                 CircularBufferChanged?.Invoke(this, CircularBufferChangedEventArgs<T>.PushedBack_PopFront(
-                    new[]{item}, new[]{popped}));
+                    item, popped));
             }
             else
             {
-                CircularBufferChanged?.Invoke(this, CircularBufferChangedEventArgs<T>.PushedBack(new[]{item}));
+                CircularBufferChanged?.Invoke(this, CircularBufferChangedEventArgs<T>.PushedBack(item));
             }
         }
 
@@ -252,11 +252,11 @@ namespace Utils
             if (PushFront_Internal(item, out var popped))
             {
                 CircularBufferChanged?.Invoke(this, CircularBufferChangedEventArgs<T>.PushedFront_PopBack(
-                    new[]{item}, new[]{popped}));
+                    item, popped));
             }
             else
             {
-                CircularBufferChanged?.Invoke(this, CircularBufferChangedEventArgs<T>.PushedFront(new[]{item}));
+                CircularBufferChanged?.Invoke(this, CircularBufferChangedEventArgs<T>.PushedFront(item));
             }
         }
         

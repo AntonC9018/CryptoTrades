@@ -2,15 +2,10 @@
 using Binance.Net.Objects;
 using CommunityToolkit.Mvvm.Messaging;
 using Cysharp.Threading.Tasks;
-using Microsoft.Extensions.DependencyInjection;
 using MVVMToolkit;
 using MVVMToolkit.DependencyInjection;
 using UnityEngine;
 using Utils;
-
-public class OpenTradesTableMessage
-{
-}
 
 public class UIInitializer : MonoBehaviour
 {
@@ -47,7 +42,6 @@ public class UIInitializer : MonoBehaviour
                 tradesModel,
                 default);
         }
-        
         
         var root = GetComponent<UIRoot>();
         var serviceProvider = new ServiceProvider();
