@@ -15,3 +15,23 @@
 You may also need to regenerate the UXML schema definition files, I haven't tested if they're created automatically.
 You need to do `Assets > Update UXML Schema` in the Unity editor.
 See [docs](https://docs.unity3d.com/Manual/UIE-WritingUXMLTemplate.html), the Schema Definition section, for more info. 
+
+
+## Some notes
+
+- [Nuke](https://nuke.build/) has been used for project initialization and builds.
+- I'm using [this MVVM framework](https://github.com/bustedbunny/com.bustedbunny.mvvmtoolkit), which is still in development and has incomplete features.
+- I'm using the Binance API to fetch the SPOT trades data.
+- The UI itself is built in Unity and uses UI Toolkit.
+- I might've went a little overboard with the circular buffer, but since the problem clearly specifies that there should be thousands of trades kept at any time,
+  using a plain ObservableCollection seemed like it would be too inefficient.
+  Also, since both `ObservableCollection` and the `INotifyCollectionChanged` have in my opinion a terrible API, and since the MVVM framework does not support
+  collection bindings anyway, I decided to make my own little system.
+- Not using dependency injection at the moment.
+
+
+## Known bugs
+
+- It crashes when closed in build. The Binance API is not at fault.
+- The Table header is not properly aligned with the element in the rows. 
+
