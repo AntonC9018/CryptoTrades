@@ -36,12 +36,15 @@ public sealed class TradesTableView : BaseView, IRecipient<OpenTradesTableMessag
                 switch (e.Action)
                 {
                     case CircularBufferAction.SetAtIndex:
+                    {
                         rowsListView.RefreshItem(e.Index);
                         break;
+                    }
                     default:
-                        // Refresh all items.
+                    {
                         rowsListView.RefreshItems();
                         break;
+                    }
                 }
             };
         }

@@ -3,7 +3,7 @@
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xmlns:ui="UnityEngine.UIElements"
     xmlns:engine="UnityEngine.UIElements"
-    xsi:noNamespaceSchemaLocation="../../../UIElementsSchema/UIElements.xsd"
+    xsi:noNamespaceSchemaLocation="/../../../UIElementsSchema/UIElements.xsd"
 >
     <ui:VisualElement class="row row-trade">
         <ui:Label name="TradeKind" />

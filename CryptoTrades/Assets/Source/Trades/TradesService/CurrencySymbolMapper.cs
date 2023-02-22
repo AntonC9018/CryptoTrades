@@ -24,7 +24,9 @@ public class CurrencySymbolMapper : ICurrencySymbolMapper
         {
             var symbolsInfo = await _initializationTask;
             if (!symbolsInfo.Success)
+            {
                 throw new BinanceApiCallResultException(symbolsInfo);
+            }
             _availableSymbols = symbolsInfo.Data.Symbols
                 .ToDictionary(s => (s.BaseAsset, s.QuoteAsset), s => s.Name);
         }

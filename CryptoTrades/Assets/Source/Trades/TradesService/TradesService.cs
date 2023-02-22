@@ -56,7 +56,9 @@ public sealed class TradesService : IDisposable, IRecipient<ReloadTradesMessage>
     {
         // If we hit this one it's pretty bad.
         if (_model.TradesAreLoading)
+        {
             throw new InvalidOperationException("Trades are already loading.");
+        }
         
         CancellationToken token;
         _model.TradesAreLoading = true;
@@ -116,36 +118,45 @@ public sealed class TradesService : IDisposable, IRecipient<ReloadTradesMessage>
         string symbol = await _symbolMapper.GetSymbol(_model.CurrencyNames);
 
         if (token.IsCancellationRequested)
+        {
             return;
+        }
         
         {
             var initTask = _binanceClient.SpotApi.ExchangeData.GetRecentTradesAsync(
                 symbol, _config.TradesCountLimit, token);
             var result = await initTask;
             if (!result.Success)
+            {
                 throw new BinanceApiCallResultException(result);
+            }
 
             _model.Trades.Clear();
             _model.Trades.PushFrontN(result.Data.Select(t => t.ToTrade()).ToArray());
         }
-        
+
         if (token.IsCancellationRequested)
+        {
             return;
+        }
 
         {
             var subscriptionTask = _binanceSocketClient.SpotStreams.SubscribeToTradeUpdatesAsync(
                 symbol, e => OnNextTrade(e.Data), token);
             var subscriptionResult = await subscriptionTask;
-
             if (!subscriptionResult.Success)
+            {
                 throw new BinanceApiCallResultException(subscriptionResult);
+            }
         }
     }
     
     private void OnNextTrade(IBinanceTrade trade)
     {
         if (_model.TradesAreLoading)
+        {
             return;
+        }
         
         var tradeModel = trade.ToTrade();
         var trades = _model.Trades;
