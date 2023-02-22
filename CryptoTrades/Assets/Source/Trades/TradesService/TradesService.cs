@@ -22,6 +22,7 @@ public sealed class TradesService : IDisposable, IRecipient<ReloadTradesMessage>
     private readonly BinanceSocketClient _binanceSocketClient;
     private readonly CancellationToken _cancellationToken;
     private readonly TradesModel _model;
+    private readonly ICurrencySymbolMapper _symbolMapper;
     
 #if THREAD_SYNCH
     private readonly SemaphoreSlim _semaphoreTakeOver = new(initialCount: 0, maxCount: 1); 
@@ -29,8 +30,6 @@ public sealed class TradesService : IDisposable, IRecipient<ReloadTradesMessage>
 #endif    
     
     [CanBeNull] private CancellationTokenSource _cts;
-    
-    private readonly ICurrencySymbolMapper _symbolMapper;
 
     public TradesService(
         TradesConfiguration tradesConfig,

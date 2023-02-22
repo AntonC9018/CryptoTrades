@@ -12,27 +12,8 @@ using Utils;
 
 public sealed class TradesTableView : BaseView, IRecipient<OpenTradesTableMessage>
 {
-    private TradesTableViewModel ViewModel => (TradesTableViewModel) BindingContext;
-    
     [SerializeField] private VisualTreeAsset _tableRowAsset;
-    
-#if UNITY_EDITOR
-    [MenuItem("CONTEXT/TradesTableView/AddRow")]
-    public static void AddRow(MenuCommand menuCommand)
-    {
-        if (!Application.isPlaying)
-            return;
-        
-        var t = (TradesTableView) menuCommand.context;
-        t.ViewModel.Rows.PushFront(new TradesTableRowViewModel
-        {
-            DateTime = "DateTime",
-            TradeAmount = "TradeAmount",
-            TradePrice = "TradePrice",
-            IsBuy = true,
-        });
-    }
-#endif
+    private TradesTableViewModel ViewModel => (TradesTableViewModel) BindingContext;
 
     public void Receive(OpenTradesTableMessage message)
     {
@@ -63,12 +44,6 @@ public sealed class TradesTableView : BaseView, IRecipient<OpenTradesTableMessag
                         break;
                 }
             };
-            
-            // The table header has to account for the scrollbar width
-            // in order to align the header columns properly.
-            var scrollBarWidth = rowsListView.style.width;
-            var offset = RootVisualElement.Q<VisualElement>("ScrollbarOffset");
-            offset.style.width = scrollBarWidth;
         }
 
         enabled = true;

@@ -6,10 +6,9 @@ namespace Utils
     {
         public CircularBufferAction Action { get; }
         public int Index { get; }
-
-        public bool Removed => OldItems?.Count != 0;
         public IReadOnlyList<T> OldItems { get; }
         public IReadOnlyList<T> NewItems { get; }
+        public bool Removed => OldItems?.Count != 0;
         
         private CircularBufferChangedEventArgs(CircularBufferAction action,
             int index = -1,

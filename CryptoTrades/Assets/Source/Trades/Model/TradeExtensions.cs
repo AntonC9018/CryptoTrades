@@ -2,7 +2,7 @@
 
 public static class TradeExtensions
 {
-    // https://money.stackexchange.com/q/90686
+    // Meaning of BuyerIsMarker: https://money.stackexchange.com/q/90686
     public static Trade ToTrade(this IBinanceTrade data)
     {
         return new Trade
