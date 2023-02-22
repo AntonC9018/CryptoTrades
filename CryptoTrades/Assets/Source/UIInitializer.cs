@@ -1,4 +1,6 @@
-﻿using Binance.Net.Clients;
+﻿using System;
+using System.Threading;
+using Binance.Net.Clients;
 using Binance.Net.Objects;
 using CommunityToolkit.Mvvm.Messaging;
 using Cysharp.Threading.Tasks;
@@ -12,6 +14,7 @@ public class UIInitializer : MonoBehaviour
     [SerializeField] private UnityTimer _timer;
     [SerializeField] private bool _isTesting;
     [SerializeField] private TradesConfiguration _tradesConfiguration;
+    private CancellationTokenSource _cts = new();
         
     void Start() => InitializeAsync().Forget();
 
@@ -33,14 +36,14 @@ public class UIInitializer : MonoBehaviour
             var binanceClients = (
                 socket: new BinanceSocketClient(BinanceSocketClientOptions.Default),
                 regular: new BinanceClient(BinanceClientOptions.Default));
-            var currencySymbolMapper = new CurrencySymbolMapper(binanceClients.regular, default);
+            var currencySymbolMapper = new CurrencySymbolMapper(binanceClients.regular, _cts.Token);
             tradesService = new TradesService(
                 tradesConfig,
                 binanceClients.socket,
                 binanceClients.regular,
                 currencySymbolMapper,
                 tradesModel,
-                default);
+                _cts.Token);
         }
         
         var root = GetComponent<UIRoot>();
@@ -52,5 +55,11 @@ public class UIInitializer : MonoBehaviour
 
         await root.Initialize(messenger, serviceProvider);
         messenger.Send<OpenTradesTableMessage>();
+    }
+    
+    private void OnDestroy()
+    {
+        _cts.Cancel();
+        _cts.Dispose();
     }
 }

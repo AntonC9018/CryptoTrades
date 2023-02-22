@@ -1,11 +1,11 @@
 ﻿using System;
-using System.Collections.ObjectModel;
 using System.Globalization;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using Microsoft.Extensions.DependencyInjection;
 using MVVMToolkit;
+using UnityEngine;
 using Utils;
 
 public partial class TradesTableViewModel : ViewModel
@@ -83,6 +83,12 @@ public partial class TradesTableViewModel : ViewModel
                     break;
                 }
             }
+        };
+
+        Rows.CircularBufferChanged += (sender, e) =>
+        {
+            if (e.Action != CircularBufferAction.SetAtIndex)
+                UpdateTradesCommand.NotifyCanExecuteChanged();
         };
     }
     

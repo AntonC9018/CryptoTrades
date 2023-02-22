@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using JetBrains.Annotations;
 using Nuke.Common;
@@ -63,6 +65,13 @@ class Build : NukeBuild
         {
             OpenUnityEditor();
         });
+    
+    Target UnityBuildWindows => _ => _
+        .DependsOn(Restore)
+        .Executes(() =>
+        {
+            RunUnityBuildWindows();
+        });
 
     AbsolutePath UnityProjectFolder => RootDirectory / "CryptoTrades";
     AbsolutePath GeneratedUnityCsProj => UnityProjectFolder / "Assembly-CSharp.csproj";
@@ -73,6 +82,8 @@ class Build : NukeBuild
     AbsolutePath UnityProjectVersionFile => UnityProjectFolder / "ProjectSettings" / "ProjectVersion.txt";
     AbsolutePath NukeBuildDirectory => RootDirectory / "build";
     AbsolutePath NukeCsProjFile => NukeBuildDirectory / "_build.csproj";
+    AbsolutePath ArtefactsDirectory => RootDirectory / "artefacts";
+    AbsolutePath UnityWindowsBuildDirectory => ArtefactsDirectory / "unity-windows";
 
     [Parameter] [CanBeNull] readonly AbsolutePath UnityEditorPath;
     AbsolutePath _cachedEditorPath;
@@ -140,18 +151,23 @@ class Build : NukeBuild
         throw new Exception("The right unity editor version has not been found in the default location. Pass it as a parameter.");
     }
 
+    IProcess Unity(Arguments args)
+    {
+        var unityEditorPath = GetUnityEditorPath();
+        args.Add("-projectPath {value}", UnityProjectFolder);
+        return ProcessTasks.StartProcess(unityEditorPath, args.RenderForExecution());
+    }
+    
     void CreateUnitySolution()
     {
         if (GeneratedUnityCsProj.Exists())
             return;
-        var unityEditorPath = GetUnityEditorPath();
         var args = new Arguments();
-        args.Add("-projectPath {value}", UnityProjectFolder);
         args.Add("-executeMethod {value}", "UnityEditor.SyncVS.SyncSolution");
         args.Add("-nographics");
         args.Add("-quit");
         args.Add("-batchmode");
-        var p = ProcessTasks.StartProcess(unityEditorPath, args.RenderForExecution());
+        var p = Unity(args);
         p.WaitForExit();
         if (GeneratedUnityCsProj.Exists())
             return;
@@ -189,12 +205,37 @@ class Build : NukeBuild
             .RenderForExecution());
     }
     
-    IProcess OpenUnityEditor()
+    IProcess OpenUnityEditor() => Unity(new());
+
+    void RunUnityBuildWindows()
     {
-        var unityEditorPath = GetUnityEditorPath();
-        var args = new Arguments()
-            .Add("-projectPath {value}", UnityProjectFolder)
-            .RenderForExecution();
-        return ProcessTasks.StartProcess(unityEditorPath, args);
+        EnsureCleanDirectory(UnityWindowsBuildDirectory);
+        
+        var args = new Arguments();
+        args.Add("-executeMethod {value}", "Build.BuildHelper.BuildWindows");
+        args.Add("-nographics");
+        args.Add("-quit");
+        args.Add("-batchmode");
+        Serilog.Log.Information("Building unity project into {path}", UnityWindowsBuildDirectory);
+        var p = Process.Start(new ProcessStartInfo
+        {
+            FileName = GetUnityEditorPath(),
+            Arguments = args.RenderForExecution(),
+            RedirectStandardInput = true,
+        });
+        p.StandardInput.WriteLine(UnityWindowsBuildDirectory);
+        p.StandardInput.Flush();
+        p.WaitForExit();
+        
+        if (p.ExitCode != 0)
+            throw new Exception("Unity build failed");
+        
+        // zip the output
+        AbsolutePath zipPath = ArtefactsDirectory / "CryptoTrades-Windows.zip";
+        if (File.Exists(zipPath))
+            File.Delete(zipPath);
+        
+        ZipFile.CreateFromDirectory(UnityWindowsBuildDirectory, zipPath!);
+        Serilog.Log.Information("Project built to {zipPath}", zipPath);
     }
 }
