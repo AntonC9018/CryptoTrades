@@ -28,17 +28,25 @@ public partial class TradesTableViewModel : ViewModel
     // I'm not sure how INotifyCollectionChanged is supposed to handle inserts at indices.
     // Does is support them only in the form of a Move and then a Set at an index?
     // If so, then it would add no value.
-    public ObservableCollection<TradesTableRowViewModel> Rows { get; } = new();
+    public ObservableCircularBuffer<TradesTableRowViewModel> Rows { get; private set; }
     
     protected override void OnInit()
     {
         Initialize(ServiceProvider.GetRequiredService<TradesModel>());
     }
     
-    private void Initialize(TradesModel model)
+    public void Initialize(TradesModel model)
     {
+        if (Model is not null)
+        {
+            if (Model != model)
+                throw new Exception("Initialization with different models is not allowed.");
+            return;
+        }
+        
         Model = model;
         (CurrencyName1, CurrencyName2) = model.CurrencyNames;
+        Rows = new ObservableCircularBuffer<TradesTableRowViewModel>(Model.Trades.Capacity);
 
         static TradesTableRowViewModel GetRow(Trade t)
         {
@@ -51,6 +59,7 @@ public partial class TradesTableViewModel : ViewModel
                 TradePrice = Math.Abs(t.Price).ToString(culture),
             };
         }
+        
         Rows.SubscribeReflectingCollectionChanged(Model.Trades, GetRow);
 
         Model.PropertyChanged += (_, e) =>
@@ -82,7 +91,7 @@ public partial class TradesTableViewModel : ViewModel
                 return false;
             }
 
-            if (Model.Trades.Count == 0 || SomeCurrencyNameChanged)
+            if (Model.Trades.Size == 0 || SomeCurrencyNameChanged)
                 return true;
 
             return false;

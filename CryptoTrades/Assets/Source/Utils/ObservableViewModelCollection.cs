@@ -82,7 +82,7 @@ namespace Utils
                     break;
             }
         }
-    
+
         public static NotifyCollectionChangedEventHandler WrapCollectionChanged<TModel, TViewModel>(
             this ObservableCollection<TViewModel> observer,
             Func<TModel?, TViewModel> viewModelFactory)
@@ -123,5 +123,6 @@ namespace Utils
         }
     }
 }
+
 
 #pragma warning restore CS8632 // nullability not enabled, but ? is used

@@ -5,7 +5,8 @@
     xmlns:engine="UnityEngine.UIElements"
     xsi:noNamespaceSchemaLocation="../../../UIElementsSchema/UIElements.xsd"
 >
-    <ui:VisualElement class="row">
+    <ui:VisualElement class="row row-trade">
+        <ui:Label name="TradeKind" />
         <ui:Label name="TradePrice" />
         <ui:Label name="TradeAmount" />
         <ui:Label name="DateTime" />
