@@ -24,9 +24,6 @@ public class UIInitializer : MonoBehaviour
         // TBD: add normal DI
         var tradesConfig = new TradesConfiguration();
         var tradesModel = new TradesModel(new ObservableCircularBuffer<Trade>(tradesConfig.TradesCountLimit));
-        var binanceClients = (
-            new BinanceSocketClient(BinanceSocketClientOptions.Default),
-            new BinanceClient(BinanceClientOptions.Default));
 
         object tradesService;
 
@@ -37,10 +34,15 @@ public class UIInitializer : MonoBehaviour
         }
         else
         {
+            var binanceClients = (
+                socket: new BinanceSocketClient(BinanceSocketClientOptions.Default),
+                regular: new BinanceClient(BinanceClientOptions.Default));
+            var currencySymbolMapper = new CurrencySymbolMapper(binanceClients.regular, default);
             tradesService = new TradesService(
                 tradesConfig,
-                binanceClients.Item1,
-                binanceClients.Item2,
+                binanceClients.socket,
+                binanceClients.regular,
+                currencySymbolMapper,
                 tradesModel,
                 default);
         }

@@ -36,6 +36,46 @@ public class BinanceApiCallResultException : Exception
     public BinanceApiCallResultException(CallResult r) => CallResult = r;
 }
 
+public interface ICurrencySymbolMapper
+{
+    UniTask<string> GetSymbol((string baseAsset, string quoteAsset) currencyPair);
+}
+
+public class CurrencySymbolMapper : ICurrencySymbolMapper
+{
+    private readonly Task<WebCallResult<BinanceExchangeInfo>> _initializationTask;
+    private Dictionary<(string, string), string> _availableSymbols;
+    
+    public CurrencySymbolMapper(BinanceClient client, CancellationToken cancellationToken)
+    {
+        _initializationTask = client.SpotApi.ExchangeData.GetExchangeInfoAsync(cancellationToken);
+    }
+    
+    public async UniTask<string> GetSymbol((string baseAsset, string quoteAsset) currencyPair)
+    {
+        if (_availableSymbols is null)
+        {
+            var symbolsInfo = await _initializationTask;
+            if (!symbolsInfo.Success)
+                throw new BinanceApiCallResultException(symbolsInfo);
+            _availableSymbols = symbolsInfo.Data.Symbols
+                .ToDictionary(s => (s.BaseAsset, s.QuoteAsset), s => s.Name);
+        }
+
+        string symbol;
+        {
+            var (a, b) = currencyPair;
+            if (!_availableSymbols.TryGetValue((a, b), out symbol)
+                && !_availableSymbols.TryGetValue((b, a), out symbol))
+            {
+                throw new InvalidOperationException($"Invalid currency pair: {a} and {b}");
+            }
+        }
+
+        return symbol;
+    }
+}
+
 public sealed class TradesService : IDisposable, IRecipient<ReloadTradesMessage>
 {
     private readonly TradesConfiguration _config;
@@ -51,13 +91,13 @@ public sealed class TradesService : IDisposable, IRecipient<ReloadTradesMessage>
     
     [CanBeNull] private CancellationTokenSource _cts;
     
-    private readonly Task<WebCallResult<BinanceExchangeInfo>> _initializationTask;
-    private Dictionary<(string, string), string> _availableSymbols;
+    private readonly ICurrencySymbolMapper _symbolMapper;
 
     public TradesService(
         TradesConfiguration tradesConfig,
         BinanceSocketClient binanceSocketClient,
         BinanceClient binanceClient,
+        ICurrencySymbolMapper symbolMapper,
         TradesModel model,
         CancellationToken cancellationToken)
     {
@@ -66,7 +106,7 @@ public sealed class TradesService : IDisposable, IRecipient<ReloadTradesMessage>
         _binanceSocketClient = binanceSocketClient;
         _cancellationToken = cancellationToken;
         _model = model;
-        _initializationTask = _binanceClient.SpotApi.ExchangeData.GetExchangeInfoAsync();
+        _symbolMapper = symbolMapper;
     }
     
     public void Receive(ReloadTradesMessage message)
@@ -79,15 +119,6 @@ public sealed class TradesService : IDisposable, IRecipient<ReloadTradesMessage>
         // If we hit this one it's pretty bad.
         if (_model.TradesAreLoading)
             throw new InvalidOperationException("Trades are already loading.");
-
-        if (_availableSymbols is null)
-        {
-            var symbolsInfo = await _initializationTask;
-            if (!symbolsInfo.Success)
-                throw new BinanceApiCallResultException(symbolsInfo);
-            _availableSymbols = symbolsInfo.Data.Symbols
-                .ToDictionary(s => (s.BaseAsset, s.QuoteAsset), s => s.Name);
-        }
         
         CancellationToken token;
         _model.TradesAreLoading = true;
@@ -144,15 +175,7 @@ public sealed class TradesService : IDisposable, IRecipient<ReloadTradesMessage>
     
     private async UniTask UpdateTradesInternal(CancellationToken token)
     {
-        string symbol;
-        {
-            var (a, b) = _model.CurrencyNames;
-            if (!_availableSymbols.TryGetValue((a, b), out symbol)
-                && !_availableSymbols.TryGetValue((b, a), out symbol))
-            {
-                throw new InvalidOperationException($"Invalid currency pair: {a} and {b}");
-            }
-        }
+        string symbol = await _symbolMapper.GetSymbol(_model.CurrencyNames);
 
         if (token.IsCancellationRequested)
             return;
@@ -173,7 +196,7 @@ public sealed class TradesService : IDisposable, IRecipient<ReloadTradesMessage>
 
         {
             var subscriptionTask = _binanceSocketClient.SpotStreams.SubscribeToTradeUpdatesAsync(
-                symbol, e => OnNextTrade(e.Data), token);
+                symbol, e => OnNextTrade(e.Data).Forget(), token);
             var subscriptionResult = await subscriptionTask;
 
             if (!subscriptionResult.Success)
@@ -181,15 +204,19 @@ public sealed class TradesService : IDisposable, IRecipient<ReloadTradesMessage>
         }
     }
     
-    private void OnNextTrade(IBinanceTrade trade)
+    private async UniTask OnNextTrade(IBinanceTrade trade)
     {
+        await UniTask.SwitchToMainThread();
+        
         if (_model.TradesAreLoading)
             return;
         
         var tradeModel = trade.ToTrade();
         var trades = _model.Trades;
         
+        // We're pushing from only one thread so it's fine not to lock.
         trades.PushFront(tradeModel);
+        
     }
 
     public void Dispose()

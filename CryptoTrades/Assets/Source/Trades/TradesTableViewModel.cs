@@ -14,13 +14,13 @@ public partial class TradesTableViewModel : ViewModel
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(SomeCurrencyNameChanged))]
-    [NotifyPropertyChangedFor(nameof(CanUpdateTrades))]
+    // [NotifyPropertyChangedFor(nameof(CanUpdateTrades))]
     [NotifyCanExecuteChangedFor(nameof(UpdateTradesCommand))]
     private string _currencyName1;
     
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(SomeCurrencyNameChanged))]
-    [NotifyPropertyChangedFor(nameof(CanUpdateTrades))]
+    // [NotifyPropertyChangedFor(nameof(CanUpdateTrades))]
     [NotifyCanExecuteChangedFor(nameof(UpdateTradesCommand))]
     private string _currencyName2;
 
@@ -45,7 +45,11 @@ public partial class TradesTableViewModel : ViewModel
         }
         
         Model = model;
-        (CurrencyName1, CurrencyName2) = model.CurrencyNames;
+        {
+            var (a, b) = model.CurrencyNames;
+            CurrencyName1 = a == "" ? "BTC" : a;
+            CurrencyName2 = b == "" ? "BNB" : b;
+        }
         Rows = new ObservableCircularBuffer<TradesTableRowViewModel>(Model.Trades.Capacity);
 
         static TradesTableRowViewModel GetRow(Trade t)
@@ -53,7 +57,7 @@ public partial class TradesTableViewModel : ViewModel
             var culture = CultureInfo.CurrentUICulture;
             return new TradesTableRowViewModel
             {
-                DateTime = t.ToString(),
+                DateTime = t.DateTime.ToString(culture),
                 IsBuy = t.IsBuy,
                 TradeAmount = t.Amount.ToString(culture),
                 TradePrice = Math.Abs(t.Price).ToString(culture),
@@ -67,8 +71,7 @@ public partial class TradesTableViewModel : ViewModel
             switch (e.PropertyName)
             {
                 case nameof(Model.TradesAreLoading):
-                    OnPropertyChanged(nameof(CanUpdateTrades));
-                    OnPropertyChanged(nameof(UpdateTradesCommand));
+                    UpdateTradesCommand.NotifyCanExecuteChanged();
                     break;
                 case nameof(Model.CurrencyNames):
                     (CurrencyName1, CurrencyName2) = Model.CurrencyNames;

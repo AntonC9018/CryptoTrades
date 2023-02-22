@@ -12,23 +12,23 @@ public sealed class TradesTableRowViewModel
     public string TradeKind => IsBuy ? "Buy" : "Sell";
     public string ColorClass => IsBuy ? "buy" : "sell";
 
-    private static void SetColorClass(VisualElement e, string klass)
+    private void SetColorClass(VisualElement e)
     {
         foreach (var colorClass in ColorClasses)
             e.RemoveFromClassList(colorClass);
-        e.AddToClassList(klass);
+        e.AddToClassList(ColorClass);
     }
     
-    public static void Bind(VisualElement root, TradesTableRowViewModel viewModel)
+    public void BindView(VisualElement root)
     {
         var tradePrice = root.Q<Label>("TradePrice"); 
-        tradePrice.text = viewModel.TradePrice;
+        tradePrice.text = TradePrice;
 
         var tradeKind = root.Q<Label>("TradeKind");
-        tradeKind.text = viewModel.TradeKind;
-        SetColorClass(tradeKind, viewModel.ColorClass);
+        tradeKind.text = TradeKind;
+        SetColorClass(tradeKind);
         
-        root.Q<Label>("TradeAmount").text = viewModel.TradeAmount;
-        root.Q<Label>("DateTime").text = viewModel.DateTime;
+        root.Q<Label>("TradeAmount").text = TradeAmount;
+        root.Q<Label>("DateTime").text = DateTime;
     }
 }
