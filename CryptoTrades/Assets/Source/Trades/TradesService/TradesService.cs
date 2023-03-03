@@ -1,12 +1,4 @@
-﻿// The thread synchronization gets really complicated and can be entirely avoided
-// as long as one never calls the Update method when TradesAreLoading is true,
-// and as long as the Update is started in a single thread with the UI
-// (the task creation is done in the same thread).
-// In theory it should be fine without this.
-// #define THREAD_SYNCH
-
-using System;
-using System.Diagnostics.CodeAnalysis;
+﻿using System;
 using System.Linq;
 using System.Threading;
 using Binance.Net.Clients;
@@ -23,11 +15,7 @@ public sealed class TradesService : IDisposable, IRecipient<ReloadTradesMessage>
     private readonly CancellationToken _cancellationToken;
     private readonly TradesModel _model;
     private readonly ICurrencySymbolMapper _symbolMapper;
-    
-#if THREAD_SYNCH
-    private readonly SemaphoreSlim _semaphoreTakeOver = new(initialCount: 0, maxCount: 1); 
-    private readonly SemaphoreSlim _semaphoreInitializeTrades = new(initialCount: 0, maxCount: 1); 
-#endif    
+    private readonly SemaphoreSlim _semaphoreTakeOver = new(initialCount: 1, maxCount: 1); 
     
     [CanBeNull] private CancellationTokenSource _cts;
 
@@ -54,62 +42,88 @@ public sealed class TradesService : IDisposable, IRecipient<ReloadTradesMessage>
     
     public async UniTask UpdateTrades()
     {
-        // If we hit this one it's pretty bad.
-        if (_model.TradesAreLoading)
-        {
-            throw new InvalidOperationException("Trades are already loading.");
-        }
+        var cts = CancellationTokenSource.CreateLinkedTokenSource(_cancellationToken);
+        var token = cts.Token;
         
-        CancellationToken token;
-        _model.TradesAreLoading = true;
+        // Since only one process can be loading at the same time, we have to wait on another lock.
+        // Just awaiting a task will not be enough, because resetting the task will also have
+        // to be locked between multiple threads.
+        await _semaphoreTakeOver.WaitAsync(token);
         
-#if THREAD_SYNCH
-        // We assume it has been called previously, which means the current data is fresher,
-        // which means we should stop the current call.
-        // This also closes all dangling websocket streams.
         try
         {
-            await _semaphoreTakeOver.WaitAsync(_cancellationToken);
-
-            _cts?.Cancel();
-
-            var cts = CancellationTokenSource.CreateLinkedTokenSource(_cancellationToken);
-            token = cts.Token;
-            _cts = cts;
-        }
-        catch (Exception)
-        {
-            _model.TradesAreLoading = false;
-            throw;
+            
+            // Set this variable ASAP.
+            _model.TradesAreLoading = true;
+            
+            {
+                // Cancel the current loading process or the websocket streams.
+                // If we happen to be reloading the data at this time, that means the current data is fresher,
+                // so the previous call has to be interrupted.
+                _cts?.Cancel();
+                _cts?.Dispose();
+                _cts = cts;
+            }
         }
         finally
         {
             _semaphoreTakeOver.Release();
         }
-#else
-        _cts?.Cancel();
-        _cts = CancellationTokenSource.CreateLinkedTokenSource(_cancellationToken);
-        token = _cts.Token;
-#endif
+        
+        // Here, we actually do the logic.
+        // This has to be under a different critical section, because the previous critical section
+        // should be able to short-circuit the things done in this one.
+        // And this needs to be a critical section since two threads must not start loading
+        // at the same time.
+        await _model.TradesSemaphore.WaitAsync(token);
 
         try
         {
-#if THREAD_SYNCH
-            await _semaphoreInitializeTrades.WaitAsync(token);
-#endif
-            await UpdateTradesInternal(token);
-        }
-        catch (Exception)
-        {
-            _model.Trades.Clear();
-            throw;
+            // Some other thread took over.
+            if (token.IsCancellationRequested)
+            {
+                return;
+            }
+
+            try
+            {
+                await UpdateTradesInternal(token);
+            }
+            catch
+            {
+                _model.Trades.Clear();
+                throw;
+            }
+            // This is the main reason why we need the critical section.
+            // Without the critical section, this bit could run after the new
+            // thread has already loaded the initial batch of data.
+            if (token.IsCancellationRequested)
+                _model.Trades.Clear();
         }
         finally
         {
-            _model.TradesAreLoading = false;
-#if THREAD_SYNCH
-            _semaphoreInitializeTrades.Release();
-#endif
+            _model.TradesSemaphore.Release();
+            
+            // If the token has been cancelled by another thread, that means that thread has taken over.
+            // But in the case when the token has been cancelled from somewhere else, we have to unset the
+            // TradesAreLoading flag. The only way to truly check if the loading has been taken over by
+            // another thread is to check the cts.
+            // We don't use the token here, because if it happens to have been cancelled from the outside,
+            // the loading variable won't be unset.
+            await _semaphoreTakeOver.WaitAsync();
+            try
+            {
+                    
+                // cts is only changed inside a section that relies on the same semaphore.
+                // If another thread has started loading, or is going to start loading, that means it's past the
+                // cts change, which means it's taken over already.
+                if (_cts == cts)
+                    _model.TradesAreLoading = false;
+            }
+            finally
+            {
+                _semaphoreTakeOver.Release();
+            }
         }
     }
     
@@ -141,8 +155,9 @@ public sealed class TradesService : IDisposable, IRecipient<ReloadTradesMessage>
         }
 
         {
+            // We have to either capture the cancellation token here, or take the cts lock in the callback.
             var subscriptionTask = _binanceSocketClient.SpotStreams.SubscribeToTradeUpdatesAsync(
-                symbol, e => OnNextTrade(e.Data), token);
+                symbol, e => OnNextTrade(e.Data, token).Forget(), token);
             var subscriptionResult = await subscriptionTask;
             if (!subscriptionResult.Success)
             {
@@ -151,18 +166,23 @@ public sealed class TradesService : IDisposable, IRecipient<ReloadTradesMessage>
         }
     }
     
-    private void OnNextTrade(IBinanceTrade trade)
+    private async UniTask OnNextTrade(IBinanceTrade trade, CancellationToken token)
     {
+        // I think this is called on the same thread each time (I'm 99% sure),
+        // so we don't have to have another critical section here.
         if (_model.TradesAreLoading)
         {
             return;
         }
-        
-        var tradeModel = trade.ToTrade();
-        var trades = _model.Trades;
-        
-        // We're pushing from only one thread so it's fine not to lock.
-        trades.PushFront(tradeModel);
+
+        await _model.ModifyTradesAsync(trades =>
+        {
+            if (_model.TradesAreLoading)
+            {
+                return;
+            }
+            trades.PushFront(trade.ToTrade());
+        }, token);
     }
 
     public void Dispose()
