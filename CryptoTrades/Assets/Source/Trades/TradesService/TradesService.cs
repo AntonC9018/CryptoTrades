@@ -110,19 +110,24 @@ public sealed class TradesService : IDisposable, IRecipient<ReloadTradesMessage>
             // another thread is to check the cts.
             // We don't use the token here, because if it happens to have been cancelled from the outside,
             // the loading variable won't be unset.
-            await _semaphoreTakeOver.WaitAsync();
-            try
+            
+            // We can do an early check here to potentially avoid the semaphore.
+            if (_cts == cts)
             {
-                    
-                // cts is only changed inside a section that relies on the same semaphore.
-                // If another thread has started loading, or is going to start loading, that means it's past the
-                // cts change, which means it's taken over already.
-                if (_cts == cts)
-                    _model.TradesAreLoading = false;
-            }
-            finally
-            {
-                _semaphoreTakeOver.Release();
+                await _semaphoreTakeOver.WaitAsync();
+                try
+                {
+                        
+                    // cts is only changed inside a section that relies on the same semaphore.
+                    // If another thread has started loading, or is going to start loading, that means it's past the
+                    // cts change, which means it's taken over already.
+                    if (_cts == cts)
+                        _model.TradesAreLoading = false;
+                }
+                finally
+                {
+                    _semaphoreTakeOver.Release();
+                }
             }
         }
     }
